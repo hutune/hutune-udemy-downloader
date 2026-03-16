@@ -24,6 +24,11 @@ $(function() {
     showPage($(this).data('page'));
   });
 
+  // Logo click → go to home (scan courses page)
+  $(document).on('click', '.nav-brand', function() {
+    showPage('home');
+  });
+
   // Segmented control click
   $(document).on('click', '#loadPackMode .seg-btn', function() {
     $('#loadPackMode .seg-btn').removeClass('active');

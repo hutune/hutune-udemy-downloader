@@ -82,6 +82,7 @@ body {
   align-items: center;
   gap: 10px;
   min-width: 190px;
+  cursor: pointer;
 }
 
 .nav-logo {

@@ -110,26 +110,41 @@ body {
   display: flex;
   gap: 2px;
   align-items: center;
+  border: none !important;         /* override Bootstrap .nav-tabs border-bottom */
 }
 
 .nav-tab {
   padding: 7px 16px;
   border-radius: 20px;
-  /* pill shape */
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
   color: var(--muted);
-  text-decoration: none;
+  text-decoration: none !important;   /* Bootstrap .nav-link adds underline */
   position: relative;
   transition: color .15s, background .15s;
-  border: none;
+  border: none !important;             /* Bootstrap .nav-link.active adds border */
   background: transparent;
   font-family: 'Be Vietnam Pro', sans-serif;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  outline: none !important;
+  line-height: 1;  /* equal item heights → align-items:center works correctly */
+}
+.nav-tab .glyphicon {
+  position: relative;
+  top: 0;   /* cancel Bootstrap's top:1px; line-height:1 inherited from nav-tab */
+  line-height: 1;
+}
+
+.nav-tab:hover,
+.nav-tab:focus,
+.nav-tab:active {
+  text-decoration: none !important;
+  border: none !important;
+  outline: none !important;
 }
 
 .nav-tab:hover {
@@ -140,7 +155,6 @@ body {
 .nav-tab.active {
   color: var(--accent);
   background: rgba(99, 102, 241, .12);
-  /* No underline — pill highlight only */
 }
 
 .nav-actions {
@@ -207,9 +221,8 @@ body {
 #example {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: scroll;    /* always-present 5px scrollbar → constant layout width, no shift */
   overflow-x: hidden;
-  /* Visual frame so user knows this area scrolls */
   background: var(--card-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -262,9 +275,10 @@ body {
   margin-bottom: 14px;
 }
 
-/* filter card: NO sticky — flex layout keeps it at top naturally */
+/* filter card: Scan Courses right padding = scrollbar(5)+example-pad(12)+card-border(1)+card-pad(12)+1 = 31px */
 #page-home>.card {
   flex-shrink: 0;
+  padding-right: 30px;
 }
 
 .filter-row {
@@ -347,11 +361,9 @@ body {
   box-shadow: none;
 }
 
-/* ===== Action buttons: grouped by right-edge alignment ===== */
-/* All 3 buttons have same width 140px, right-aligned in each row */
+/* ===== Action buttons: unified width 140px ===== */
 .btn-scan,
-.btn-get-videos,
-#rescanBtn {
+.btn-get-videos {
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -366,12 +378,20 @@ body {
   height: 38px;
 }
 
+/* Dimmed state while video playlist is being fetched */
+.btn-get-videos.btn-loading,
+.btn-get-videos:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* Scan lại: match the accent btn visually but outlined */
 #rescanBtn {
   padding: 7px 12px !important;
   font-size: 13px !important;
   font-family: 'Be Vietnam Pro', sans-serif !important;
   font-weight: 600 !important;
+  gap: 6px;   /* space between refresh icon and "Scan Lại" text */
 }
 
 /* ===== SEGMENTED CONTROL (mode selector) — rectangular to match design ===== */
@@ -428,26 +448,165 @@ body {
   color: #fff;
 }
 
-/* ===== COUNTER / LOADING ===== */
-.counter-bar {
+/* ===== LOADING PANEL (replaces old counter-bar) ===== */
+.loading-panel {
+  flex-shrink: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 30px 10px 14px; /* right=30px: 12px base + 18px scrollbar offset from #example */
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Row 1: spinner + course name */
+.lp-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 0 4px;
-  color: var(--muted);
-  font-size: 13px;
-  flex-shrink: 0;
-  /* counter never grows */
+  /* No justify-content: flex-start is default */
 }
 
-.counter-spinner {
-  width: 14px;
-  height: 14px;
+.lp-spinner {
+  width: 16px;
+  height: 16px;
   border: 2px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin .7s linear infinite;
   flex-shrink: 0;
+}
+
+.lp-course-name {
+  flex: 1;         /* fills remaining space so controls are pushed to the right */
+  min-width: 0;   /* allows overflow:hidden to work correctly inside flex */
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Row 2: progress bar */
+.lp-progress-track {
+  height: 4px;
+  background: var(--card-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.lp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #818cf8);
+  border-radius: 2px;
+  transition: width .3s ease;
+}
+
+/* Indeterminate mode: bar slides continuously when progress is unknown (e.g. course scan) */
+.lp-progress-track.is-indeterminate .lp-progress-fill {
+  width: 45% !important;
+  transition: none;
+  animation: lp-indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes lp-indeterminate {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(280%); }
+}
+
+/* Row 3: thumbnail + video info */
+.lp-video-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-thumb {
+  width: 60px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--card-2);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.lp-thumb[src]:not([src=""]) {
+  opacity: 1;
+}
+
+.lp-video-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lp-video-title {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-counter {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.lp-counter span {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Control buttons: Pause / Cancel — solid fills like other action buttons */
+.lp-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 140px;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.lp-ctrl-btn {
+  flex: 1;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: opacity .15s, transform .1s;
+}
+
+.lp-ctrl-btn:hover {
+  opacity: 0.88;
+}
+
+.lp-ctrl-btn:active {
+  transform: scale(.97);
+}
+
+/* Pause/Resume: accent purple (same palette as main buttons) */
+#lp-pause-btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Cancel: red */
+#lp-cancel-btn {
+  background: #dc2626;
+  color: #fff;
 }
 
 @keyframes spin {
@@ -1040,7 +1199,7 @@ input[type="checkbox"] {
   /* still fills empty state */
 }
 
-/* course list header now lives OUTSIDE #example — never scrolls */
+/* course list header: just shows course count now; no right padding needed */
 #courseListHeader {
   flex-shrink: 0;
   padding: 8px 0 4px;
@@ -1050,7 +1209,6 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
   /* No sticky needed: element is outside scroll container */
@@ -1069,7 +1227,10 @@ input[type="checkbox"] {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 10px 14px;
+  /* Symmetric padding: left=12px, right=12px inside card.
+     Button offset from page = 1(example-border)+12(example-pad)+5(scrollbar)+1(card-border)+12(card-pad) = 31px
+     = same as Scan Courses (1+30) and Scan Lại (31) */
+  padding: 10px 12px;
   transition: border-color .15s, background .15s;
 }
 
@@ -1125,3 +1286,192 @@ input[type="checkbox"] {
   line-clamp: 2;
   /* standard (forward-compat) */
 }
+
+.course-video-count {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* ===================================================================
+   VIDEO LIST (custom card renderer — replaces DataTable)
+=================================================================== */
+
+/* Toolbar */
+.vl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 30px 6px 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.vl-toolbar-left  { display: flex; align-items: center; gap: 5px; flex: 1; flex-wrap: wrap; }
+.vl-toolbar-right { display: flex; align-items: center; gap: 5px; }
+
+.vl-btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .15s;
+  white-space: nowrap;
+}
+.vl-btn:hover { opacity: .85; }
+.vl-btn:disabled { opacity: .45; cursor: not-allowed; }
+.vl-btn-accent  { background: var(--accent); color: #fff; }
+.vl-btn-outline { background: var(--card-2); color: var(--text); border: 1px solid var(--border); }
+.vl-btn-danger  { background: #dc2626; color: #fff; }
+
+.vl-search {
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0 10px;
+  font-size: 12px;
+  background: var(--card-2);
+  color: var(--text);
+  width: 140px;
+  outline: none;
+}
+.vl-search:focus { border-color: var(--accent); }
+
+.vl-count {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+
+/* Chapter group header */
+.chapter-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  padding: 10px 0 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+/* Video card */
+.video-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  margin-bottom: 4px;
+  transition: background .15s;
+}
+.video-card:hover { background: var(--card-2); }
+.video-card-check { flex-shrink: 0; display: flex; align-items: center; }
+.video-card-check input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; }
+
+.video-thumb {
+  width: 80px;
+  height: 50px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--card-2);
+}
+
+.video-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+
+.video-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vl-select {
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0 4px;
+  font-size: 11px;
+  background: var(--card-2);
+  color: var(--text);
+}
+.quality-select  { width: 72px; }
+.subtitle-select { width: 72px; }
+
+.vl-caption-wrap { display: flex; align-items: center; gap: 3px; }
+.vl-caption-none, .vl-attach-none { font-size: 11px; color: var(--muted); }
+
+.btn-attach-vl {
+  height: 24px;
+  padding: 0 7px;
+  font-size: 11px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-attach-vl:hover { background: rgba(99,102,241,.12); }
+
+.video-actions { flex-shrink: 0; }
+
+.btn-download-vl {
+  width: 140px;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btn-download-vl:hover:not(:disabled) { opacity: .85; }
+.btn-download-vl:disabled { opacity: .5; cursor: not-allowed; }
+.btn-download-vl.done { background: #16a34a; }
+
+/* Pagination */
+.vl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 0 4px;
+  flex-wrap: wrap;
+}
+.vl-pg-btn {
+  min-width: 32px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-2);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.vl-pg-btn:hover:not([disabled]):not(.active) { background: var(--border); }
+.vl-pg-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.vl-pg-btn[disabled] { opacity: .4; cursor: not-allowed; }
+.vl-pg-ellipsis { color: var(--muted); padding: 0 4px; font-size: 13px; }
+.vl-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 0; }

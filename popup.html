@@ -68,11 +68,30 @@
         </div>
       </div>
 
-      <!-- Counter / loading -->
-      <div class="counter-bar" id="counter" style="display:none;">
-        <div class="counter-spinner"></div>
-        <i id="current-text"></i>
-        <i id="total-text"></i>
+      <!-- Loading panel: shown while fetching video list -->
+      <div class="loading-panel" id="counter" style="display:none;">
+        <!-- Row 1: spinner + course name + controls -->
+        <div class="lp-header">
+          <div class="lp-spinner"></div>
+          <div class="lp-course-name" id="lp-course-name">Đang tải...</div>
+          <!-- Video-load controls: shown only during Get Videos, hidden during course scan -->
+          <div class="lp-controls" id="lp-controls" style="display:none;">
+            <button class="lp-ctrl-btn" id="lp-pause-btn" title="Dừng">⏸</button>
+            <button class="lp-ctrl-btn lp-ctrl-cancel" id="lp-cancel-btn" title="Hủy">✕</button>
+          </div>
+        </div>
+        <!-- Row 2: progress bar -->
+        <div class="lp-progress-track">
+          <div class="lp-progress-fill" id="lp-progress-fill" style="width:0%"></div>
+        </div>
+        <!-- Row 3: video thumbnail + title + counter -->
+        <div class="lp-video-row">
+          <img class="lp-thumb" id="lp-thumb" src="" alt="">
+          <div class="lp-video-info">
+            <div class="lp-video-title" id="lp-video-title">Đang lấy danh sách video...</div>
+            <div class="lp-counter">Video <span id="lp-current">–</span> / <span id="lp-total">?</span></div>
+          </div>
+        </div>
       </div>
 
       <!-- Course list header: OUTSIDE #example so it never scrolls away -->
